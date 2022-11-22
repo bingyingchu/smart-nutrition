@@ -3,11 +3,6 @@ import { useNav } from '../customHooks/useNav';
 import './Page.css';
 
 const Contact = () => {
-	// useNav takes in a navLinkId and returns a ref
-	// this ref is used to register the navLinkId that's
-	// currently in view, and apply activeClass styling
-	// to the corresponding nav childElement
-
 	const contactRef = useNav('Contact');
 
 	return (
@@ -19,7 +14,7 @@ const Contact = () => {
 			<div>
 				<h3>CONTACT</h3>
 				<p>Your feedback is appreciated.</p>
-				<p>Feel free to email me <button>here</button></p>
+				<p><a href="mailto:chubi@oregonstate.edu">Email Me </a></p>
 			</div>
 		</section>
 	);

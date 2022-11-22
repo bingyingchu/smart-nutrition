@@ -1,4 +1,4 @@
-from flask import Flask, request, send_from_directory
+from flask import Flask, request
 from flask_cors import CORS
 import zmq
 import time
@@ -7,29 +7,38 @@ import json
 
 app = Flask(__name__)
 CORS(app)
+res = {}
 
-@app.route('/result', methods=['GET', 'POST'])
-def result():
+@app.route('/result', methods=['POST'])
+def post():
     if request.method == 'POST':
-        # send name of the food
-        food = request.form["food"]
-        print(food)
-        if food:
-            nutrient = get_nutrient(food)   
-            return nutrient  
-        return "No food provided."
+        u_input = request.form.to_dict(flat=False)
+        for food in u_input: 
+            name = food.strip('"')
+            if name:
+                result = get_nutrient(name)   
+                print(result)
+            else:
+                result = "No food provided." 
+            res["result"] = result
+            return {"status": "success"}
+
+@app.route('/')
+def get():
+    time.sleep(2.0)
+    return res
 
 def get_nutrient(food):
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
     socket.connect("tcp://localhost:5557")
-
     socket.send(food.encode('utf-8'))
-    time.sleep(1.0)
-    # print the returned nutrients information
-    response = json.loads(socket.recv().decode("utf-8")) # {"protein": 23.9, "calcium": 12, "iron": 0.94} 
-    nutrient = "It has " + str(response["protein"]) + "g protein, " + str(response["calcium"]) + "mg calcium and " + str(response["iron"]) + "mg iron."
-    return nutrient
+    response = json.loads(socket.recv().decode("utf-8")) 
+    if response is None:
+         result = "Sorry we didn't find this food. Please try another food."
+    else:
+        result = "It has " + str(response["protein"]) + "g protein, " + str(response["calcium"]) + "mg calcium and " + str(response["iron"]) + "mg iron, for a portion of 100g."
+    return result
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0')
